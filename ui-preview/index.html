@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>三陶六步法 · 验收展示（需密码）</title>
+<style>
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:15px/1.6 'Noto Sans SC','Microsoft YaHei',sans-serif;background:linear-gradient(160deg,#102a58 0%,#1f4e79 45%,#2761e8 100%);color:#172844;display:flex;align-items:center;justify-content:center;padding:24px}
+.lock{width:100%;max-width:400px}
+.card{background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(4,20,50,.35);padding:40px 32px;text-align:center}
+.logo{width:64px;height:64px;margin:0 auto 18px;border-radius:16px;background:linear-gradient(135deg,#2761e8,#174bc5);color:#fff;font-size:34px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(39,97,232,.35)}
+h1{margin:0 0 6px;font-size:20px;color:#102a58}
+.sub{margin:0 0 24px;color:#748198;font-size:13px}
+input{width:100%;padding:13px 15px;font-size:15px;border:1.5px solid #d8e1ef;border-radius:12px;text-align:center;letter-spacing:2px;outline:none;transition:border-color .15s}
+input:focus{border-color:#2761e8}
+button{width:100%;margin-top:14px;padding:13px;font-size:15px;font-weight:700;color:#fff;background:linear-gradient(135deg,#2761e8,#174bc5);border:0;border-radius:12px;cursor:pointer;transition:transform .05s,box-shadow .15s}
+button:hover{box-shadow:0 8px 20px rgba(39,97,232,.35)}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.err{min-height:20px;margin-top:12px;color:#d45761;font-size:13px}
+.foot{margin-top:22px;color:#748198;font-size:12px}
+</style>
+</head>
+<body>
+<div class="lock">
+  <div class="card">
+    <div class="logo">6</div>
+    <h1>三陶六步法 · 验收展示</h1>
+    <p class="sub">内容已加密，请输入访问密码查看</p>
+    <input id="pw" type="password" placeholder="输入访问密码" autocomplete="off" autofocus>
+    <button id="btn">解锁查看</button>
+    <div class="err" id="err"></div>
+    <div class="foot">未获授权请勿访问</div>
+  </div>
+</div>
+<script>
+var SALT_B64 = "fKBkWlpIPZPuZOS94IpM8w==";
+var IV_B64 = "U3aAP8TAIdtNII7E";
+var CT_B64 = "";
+var TAG_B64 = "9/u2r8VHwajeOCThVQRdcQ==";
+var PAYLOAD_GZIP = true;
+var PAYLOAD_PARTS = ["payloads/7ca0645a5a483d93ee64e4bde08a4cf3-0.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-1.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-2.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-3.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-4.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-5.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-6.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-7.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-8.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-9.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-10.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-11.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-12.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-13.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-14.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-15.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-16.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-17.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-18.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-19.bin","payloads/7ca0645a5a483d93ee64e4bde08a4cf3-20.bin"];
+var ITER = 200000;
+function b64(s){var bin=atob(s),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++){u[i]=bin.charCodeAt(i);}return u;}
+function setErr(m){document.getElementById('err').textContent=m;}
+function busy(b){document.getElementById('btn').disabled=b;document.getElementById('btn').textContent=b?'解锁中…':'解锁查看';}
+async function unlock(){
+  var pw=document.getElementById('pw').value;
+  if(!pw){setErr('请输入密码');return;}
+  busy(true);setErr('');
+  var enc=new TextEncoder();
+  var salt=b64(SALT_B64),iv=b64(IV_B64);
+  try{
+    var km=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+    var bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:salt,iterations:ITER,hash:'SHA-256'},km,256);
+    var key=await crypto.subtle.importKey('raw',bits,{name:'AES-GCM'},false,['decrypt']);
+    var ct=b64(CT_B64),tag=b64(TAG_B64);
+    if(PAYLOAD_PARTS.length){
+      var parts=await Promise.all(PAYLOAD_PARTS.map(async function(file){var response=await fetch(new URL(file,location.href),{cache:'force-cache'});if(!response.ok)throw new Error('Encrypted content unavailable');return new Uint8Array(await response.arrayBuffer());}));
+      ct=new Uint8Array(parts.reduce(function(total,part){return total+part.length;},0));var offset=0;parts.forEach(function(part){ct.set(part,offset);offset+=part.length;});
+    }
+    var combined=new Uint8Array(ct.length+tag.length);
+    combined.set(ct,0);combined.set(tag,ct.length);
+    var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,combined);
+    if(PAYLOAD_GZIP){pt=await new Response(new Blob([pt]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();}
+    var html=new TextDecoder().decode(pt);
+    window.__SIXSTEP_DECRYPTED_HTML=html;
+    document.open();document.write(html);document.close();
+  }catch(e){
+    busy(false);setErr('密码错误，请重试');
+  }
+}
+document.getElementById('btn').addEventListener('click',unlock);
+document.getElementById('pw').addEventListener('keydown',function(e){if(e.key==='Enter'){unlock();}});
+// Reuse only the unlocked same-page parent's memory; refreshing the top page
+// still requires the password. No password is written to browser storage.
+if(window.parent!==window){try{
+  if(window.parent.location.origin===location.origin&&window.parent.location.pathname===location.pathname&&typeof window.parent.__SIXSTEP_DECRYPTED_HTML==='string'){
+    var cached=window.parent.__SIXSTEP_DECRYPTED_HTML;
+    window.__SIXSTEP_DECRYPTED_HTML=cached;
+    setTimeout(function(){document.open();document.write(cached);document.close();},0);
+  }
+}catch(e){}}
+</script>
+</body>
+</html>
